@@ -108,11 +108,11 @@ def upload():
 
     api.upload_large_folder(
         folder_path=config.output_dir,
-        repo_id="karpathy/fineweb-edu-100b-shuffle",
+        repo_id="duarteocarmo/FinewebEdu-100B-por_latn",
         repo_type="dataset",
     )
 
 
 if __name__ == "__main__":
-    build_dataset()
-    # upload()
+    # build_dataset()
+    upload()
