@@ -5,6 +5,7 @@ Repackage the FinewebEdu-100B dataset into shards using HuggingFace datasets str
 import os
 import time
 from types import SimpleNamespace
+from huggingface_hub import HfApi
 import shutil
 
 from datasets import load_dataset
@@ -81,7 +82,9 @@ def build_dataset():
         t0 = t1
         total_time_spent += dt
         perc_done = (total_chars_collected / total_chars_target) * 100
-        estimated_total_time = (total_time_spent / total_chars_collected) * total_chars_target
+        estimated_total_time = (
+            total_time_spent / total_chars_collected
+        ) * total_chars_target
         estimated_time_remaining = estimated_total_time - total_time_spent
         estimated_time_remaining_hours = estimated_time_remaining / 3600
 
@@ -98,5 +101,18 @@ def build_dataset():
         shard_index += 1
 
 
+def upload():
+    token = os.getenv("HF_TOKEN")
+    assert token is not None, "HF_TOKEN environment variable not set."
+    api = HfApi(token=token)
+
+    api.upload_large_folder(
+        folder_path=config.output_dir,
+        repo_id="karpathy/fineweb-edu-100b-shuffle",
+        repo_type="dataset",
+    )
+
+
 if __name__ == "__main__":
     build_dataset()
+    # upload()
