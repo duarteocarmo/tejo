@@ -67,6 +67,7 @@ parser.add_argument("--eval-every", type=int, default=250, help="evaluate val bp
 parser.add_argument("--eval-tokens", type=int, default=20*524288, help="number of tokens to evaluate val loss on")
 parser.add_argument("--core-metric-every", type=int, default=2000, help="evaluate CORE metric every N steps (-1 = disable)")
 parser.add_argument("--core-metric-max-per-task", type=int, default=500, help="examples per task for CORE metric")
+parser.add_argument("--core-metric-lang", type=str, default="en", choices=["en", "pt"], help="CORE metric language: en (English) or pt (Portuguese, requires build_pt_eval_bundle first)")
 parser.add_argument("--sample-every", type=int, default=2000, help="sample from model every N steps (-1 = disable)")
 parser.add_argument("--save-every", type=int, default=-1, help="save checkpoints every N steps (-1 = only at end)")
 # Output
@@ -301,15 +302,16 @@ while True:
     # once in a while: estimate the CORE metric (all ranks participate)
     # use the original uncompiled model because the inputs keep changing shape
     results = {}
+    core_metric_label = "core_metric" if args.core_metric_lang == "en" else "core_metric_pt"
     if args.core_metric_every > 0 and (last_step or (step > 0 and step % args.core_metric_every == 0)):
         model.eval()
         with autocast_ctx:
-            results = evaluate_model(orig_model, tokenizer, device, max_per_task=args.core_metric_max_per_task)
-        print0(f"Step {step:05d} | CORE metric: {results['core_metric']:.4f}")
+            results = evaluate_model(orig_model, tokenizer, device, max_per_task=args.core_metric_max_per_task, lang=args.core_metric_lang)
+        print0(f"Step {step:05d} | {core_metric_label}: {results['core_metric']:.4f}")
         wandb_run.log({
             "step": step,
             "total_training_flops": flops_so_far,
-            "core_metric": results["core_metric"],
+            core_metric_label: results["core_metric"],
             "centered_results": results["centered_results"],
         })
         model.train()
@@ -456,7 +458,7 @@ get_report().log(section="Base model training", data=[
     { # stats about training outcomes
         "Minimum validation bpb": min_val_bpb if val_bpb is not None else None,
         "Final validation bpb": val_bpb,
-        "CORE metric estimate": results.get("core_metric", None),
+        f"{'CORE' if args.core_metric_lang == 'en' else 'CORE-PT'} metric estimate": results.get("core_metric", None),
         "MFU %": f"{mfu:.2f}%",
         "Total training flops": f"{flops_so_far:e}",
         "Total training time": f"{total_training_time/60:.2f}m",

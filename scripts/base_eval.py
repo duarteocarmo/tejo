@@ -7,6 +7,9 @@ python -m scripts.base_eval
 Run with torchrun on e.g. 8 GPUs:
 torchrun --nproc_per_node=8 -m scripts.base_eval
 
+For Portuguese CORE metric (requires running build_pt_eval_bundle first):
+python -m scripts.base_eval --lang=pt
+
 The script will print the CORE metric to the console.
 """
 import os
@@ -45,17 +48,26 @@ def place_eval_bundle(file_path):
         shutil.move(extracted_bundle_dir, eval_bundle_dir)
     print0(f"Placed eval_bundle directory at {eval_bundle_dir}")
 
-def evaluate_model(model, tokenizer, device, max_per_task=-1):
+def evaluate_model(model, tokenizer, device, max_per_task=-1, lang="en"):
     """
     Evaluate a base model on the CORE benchmark.
     - max_per_task: crop the data to this many examples per task for testing (-1 = disable)
+    - lang: "en" for the English CORE benchmark, "pt" for the Portuguese variant
     """
     # Load config and task metadata
     base_dir = get_base_dir()
-    eval_bundle_dir = os.path.join(base_dir, "eval_bundle")
-    # Download the eval bundle to disk (and unzip if needed)
-    if not os.path.exists(eval_bundle_dir):
-        download_file_with_lock(EVAL_BUNDLE_URL, "eval_bundle.zip", postprocess_fn=place_eval_bundle)
+    if lang == "pt":
+        eval_bundle_dir = os.path.join(base_dir, "eval_bundle_pt")
+        if not os.path.exists(eval_bundle_dir):
+            raise FileNotFoundError(
+                f"Portuguese eval bundle not found at {eval_bundle_dir}. "
+                "Run `python -m scripts.build_pt_eval_bundle` first."
+            )
+    else:
+        eval_bundle_dir = os.path.join(base_dir, "eval_bundle")
+        # Download the English eval bundle to disk (and unzip if needed)
+        if not os.path.exists(eval_bundle_dir):
+            download_file_with_lock(EVAL_BUNDLE_URL, "eval_bundle.zip", postprocess_fn=place_eval_bundle)
     config_path = os.path.join(eval_bundle_dir, "core.yaml")
     data_base_path = os.path.join(eval_bundle_dir, "eval_data")
     eval_meta_data = os.path.join(eval_bundle_dir, "eval_meta_data.csv")
@@ -151,6 +163,7 @@ def main():
     parser.add_argument('--max-per-task', type=int, default=-1, help='Max examples per task to evaluate (-1 = disable)')
     parser.add_argument('--model-tag', type=str, default=None, help='optional model tag for the output directory name')
     parser.add_argument('--step', type=str, default=None, help='optional model step for the output directory name')
+    parser.add_argument('--lang', type=str, default="en", choices=["en", "pt"], help='evaluation language: en (English CORE) or pt (Portuguese CORE)')
     args = parser.parse_args()
 
     # distributed / precision setup
@@ -174,14 +187,16 @@ def main():
 
     # Evaluate the model
     with autocast_ctx:
-        out = evaluate_model(model, tokenizer, device, max_per_task=args.max_per_task)
+        out = evaluate_model(model, tokenizer, device, max_per_task=args.max_per_task, lang=args.lang)
 
     # Write out the results to a csv file
     core_metric = None
     centered_results = {}
+    metric_label = "CORE" if args.lang == "en" else "CORE-PT"
     if ddp_rank == 0:
         base_dir = get_base_dir()
-        output_csv_path = os.path.join(base_dir, "base_eval", f"{model_slug}.csv")
+        lang_suffix = "" if args.lang == "en" else f"_{args.lang}"
+        output_csv_path = os.path.join(base_dir, "base_eval", f"{model_slug}{lang_suffix}.csv")
         os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
         results = out["results"]
         centered_results = out["centered_results"]
@@ -190,7 +205,7 @@ def main():
             f.write(f"{'Task':<35}, {'Accuracy':<10}, {'Centered':<10}\n")
             for label in results:
                 f.write(f"{label:<35}, {results[label]:<10.6f}, {centered_results[label]:<10.6f}\n")
-            f.write(f"{'CORE':<35}, {'':<10}, {core_metric:<10.6f}\n")
+            f.write(f"{metric_label:<35}, {'':<10}, {core_metric:<10.6f}\n")
         # Print the content of the csv file to console too
         print0("="*80)
         print0(f"Model: {model_name}")
@@ -203,7 +218,7 @@ def main():
     get_report().log(section="Base model evaluation", data=[
         {
             "Model": model_name,
-            "CORE metric": core_metric,
+            f"{metric_label} metric": core_metric,
         },
         centered_results, # the full table
     ])
