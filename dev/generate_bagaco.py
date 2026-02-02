@@ -9,6 +9,8 @@ import time
 import shutil
 from types import SimpleNamespace
 
+MIN_DISK_GB = 10
+
 from datasets import load_dataset
 from huggingface_hub import HfApi
 import pyarrow.parquet as pq
@@ -22,6 +24,16 @@ config = SimpleNamespace(
     output_dir="./bagaco_data",
     repo_id="duarteocarmo/fineweb2-bagaco",
 )
+
+
+def check_disk_space():
+    stat = shutil.disk_usage(config.output_dir)
+    free_gb = stat.free / (1024**3)
+    if free_gb < MIN_DISK_GB:
+        raise SystemExit(
+            f"Only {free_gb:.1f}GB free disk space. Need at least {MIN_DISK_GB}GB."
+        )
+    print(f"Disk space: {free_gb:.1f}GB free")
 
 
 def build_dataset():
@@ -39,6 +51,7 @@ def build_dataset():
 
     os.makedirs(config.output_dir, exist_ok=True)
     print(f"Created output directory at {config.output_dir}")
+    check_disk_space()
 
     shard_docs = []
     shard_index = 0
@@ -85,6 +98,7 @@ def build_dataset():
 
         shard_docs = []
         shard_index += 1
+        check_disk_space()
 
     # flush remaining rows
     remaining = len(shard_docs)
