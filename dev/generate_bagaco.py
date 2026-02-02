@@ -9,15 +9,14 @@ import time
 import shutil
 from types import SimpleNamespace
 
-MIN_DISK_GB = 10
 
 from datasets import load_dataset
 from huggingface_hub import HfApi
 import pyarrow.parquet as pq
 import pyarrow as pa
 
-LIMIT = 100  # set to None to scan everything
-TOTAL_POR_LATN_DOCS = 199_737_979
+MIN_DISK_GB = 10
+LIMIT = None  # set to None to scan everything
 
 config = SimpleNamespace(
     docs_per_shard=100_000,
@@ -91,10 +90,9 @@ def build_dataset():
         t0 = t1
         total_time_spent += dt
 
-        pct_scanned = total_docs / TOTAL_POR_LATN_DOCS * 100
         print(
             f"Wrote {shard_path} | #docs in shard: {shard_size} | "
-            f"total docs: {total_docs} ({pct_scanned:.2f}% scanned) | time: {dt:.2f}s | "
+            f"total docs: {total_docs} | time: {dt:.2f}s | "
             f"total time: {total_time_spent:.2f}s"
         )
 
@@ -116,9 +114,8 @@ def build_dataset():
             compression_level=3,
             write_statistics=False,
         )
-        pct_scanned = total_docs / TOTAL_POR_LATN_DOCS * 100
         print(
-            f"Wrote final {shard_path} | #docs: {remaining} | total docs: {total_docs} ({pct_scanned:.2f}% scanned)"
+            f"Wrote final {shard_path} | #docs: {remaining} | total docs: {total_docs}"
         )
 
     print(f"Done. {total_docs} documents across {shard_index + 1} shards.")
@@ -198,5 +195,5 @@ if __name__ == "__main__":
     import os as _os
 
     build_dataset()
-    # upload()
-    _os._exit(0)  # avoid PyGILState_Release crash from datasets background threads
+    upload()
+    _os._exit(0)
