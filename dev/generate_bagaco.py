@@ -178,5 +178,8 @@ def upload():
 
 
 if __name__ == "__main__":
+    import os as _os
+
     build_dataset()
     # upload()
+    _os._exit(0)  # avoid PyGILState_Release crash from datasets background threads
