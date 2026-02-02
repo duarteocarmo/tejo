@@ -17,6 +17,7 @@ import pyarrow.parquet as pq
 import pyarrow as pa
 
 LIMIT = 100  # set to None to scan everything
+TOTAL_POR_LATN_DOCS = 199_737_979
 
 config = SimpleNamespace(
     docs_per_shard=100_000,
@@ -90,9 +91,10 @@ def build_dataset():
         t0 = t1
         total_time_spent += dt
 
+        pct_scanned = total_docs / TOTAL_POR_LATN_DOCS * 100
         print(
             f"Wrote {shard_path} | #docs in shard: {shard_size} | "
-            f"total docs: {total_docs} | time: {dt:.2f}s | "
+            f"total docs: {total_docs} ({pct_scanned:.2f}% scanned) | time: {dt:.2f}s | "
             f"total time: {total_time_spent:.2f}s"
         )
 
@@ -114,8 +116,9 @@ def build_dataset():
             compression_level=3,
             write_statistics=False,
         )
+        pct_scanned = total_docs / TOTAL_POR_LATN_DOCS * 100
         print(
-            f"Wrote final {shard_path} | #docs: {remaining} | total docs: {total_docs}"
+            f"Wrote final {shard_path} | #docs: {remaining} | total docs: {total_docs} ({pct_scanned:.2f}% scanned)"
         )
 
     print(f"Done. {total_docs} documents across {shard_index + 1} shards.")
