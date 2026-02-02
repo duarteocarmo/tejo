@@ -1,0 +1,6 @@
+Task                               , Accuracy  , Centered  
+sst2_pt                            , 0.562500  , 0.125000  
+goldenswag_pt                      , 0.125000  , -0.166667 
+mmlu_pt                            , 0.125000  , -0.166667 
+scala_pt                           , 0.437500  , -0.125000 
+PT-CORE                            ,           , -0.083333 

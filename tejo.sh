@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Showing an example run for exercising some of the code paths on the CPU (or MPS on Macbooks)
 # This script was last updated/tuned on Jan 17, 2026.
 
@@ -40,9 +39,9 @@ python -m scripts.base_train \
     --total-batch-size=16384 \
     --eval-every=100 \
     --eval-tokens=524288 \
-    --core-metric-every=120 \
+    --core-metric-every=1000 \
     --sample-every=100 \
-    --num-iterations=1000 \
+    --num-iterations=5000 \
     --run=$WANDB_RUN
 # python -m scripts.base_loss --device-batch-size=1 --split-tokens=16384
 # python -m scripts.base_eval --max-per-task=16

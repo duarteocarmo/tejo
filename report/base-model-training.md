@@ -1,0 +1,50 @@
+## Base model training
+timestamp: 2026-02-02 18:13:27
+
+- run: run01
+- device_type: 
+- depth: 6
+- aspect_ratio: 64
+- head_dim: 64
+- max_seq_len: 512
+- window_pattern: L
+- num_iterations: 5000
+- target_flops: -1.0000
+- target_param_data_ratio: 8
+- device_batch_size: 32
+- total_batch_size: 16,384
+- embedding_lr: 0.3000
+- unembedding_lr: 0.0040
+- weight_decay: 0.2000
+- matrix_lr: 0.0200
+- scalar_lr: 0.5000
+- adam_beta1: 0.8000
+- adam_beta2: 0.9500
+- warmup_ratio: 0.0000
+- warmdown_ratio: 0.4000
+- final_lr_frac: 0.0000
+- resume_from_step: -1
+- eval_every: 100
+- eval_tokens: 524,288
+- core_metric_every: 1000
+- core_metric_max_per_task: 500
+- sample_every: 100
+- save_every: -1
+- model_tag: None
+- Number of parameters: 35,782,668
+- Number of FLOPs per token: 1.533542e+08
+- Calculated number of iterations: 5000
+- Number of training tokens: 81,920,000
+- Tokens : Params ratio: 2.2894
+- DDP world size: 1
+- warmup_ratio: 0.0000
+- warmdown_ratio: 0.4000
+- final_lr_frac: 0.0000
+- Minimum validation bpb: 1.1400
+- Final validation bpb: 1.1400
+- CORE metric estimate: 0.0283
+- MFU %: 0.00%
+- Total training flops: 1.256278e+16
+- Total training time: 41.72m
+- Peak memory usage: 0.00MiB
+

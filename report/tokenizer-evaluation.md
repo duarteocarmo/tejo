@@ -1,5 +1,5 @@
 ## Tokenizer evaluation
-timestamp: 2026-02-02 14:36:51
+timestamp: 2026-02-02 16:50:05
 
 ### Comparison with GPT-2
 

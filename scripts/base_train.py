@@ -234,7 +234,7 @@ use_dummy_wandb = args.run == "dummy" or not master_process
 wandb_run = (
     DummyWandb()
     if use_dummy_wandb
-    else wandb.init(project="nanochat", name=args.run, config=user_config)
+    else wandb.init(project="tejo", name=args.run, config=user_config)
 )
 
 # Flash Attention status
@@ -529,7 +529,7 @@ while True:
                 device,
                 max_per_task=args.core_metric_max_per_task,
             )
-        print0(f"Step {step:05d} | CORE metric: {results['core_metric']:.4f}")
+        print0(f"Step {step:05d} | PT-CORE metric: {results['core_metric']:.4f}")
         wandb_run.log(
             {
                 "step": step,
@@ -657,6 +657,7 @@ while True:
     if step % 100 == 0:
         log_data = {
             "step": step,
+            "total_training_tokens": args.total_batch_size * step,
             "total_training_flops": flops_so_far,
             "total_training_time": total_training_time,
             "train/loss": debiased_smooth_loss,

@@ -15,3 +15,6 @@ wandb/
 .DS_Store
 base_data
 bagaco_data
+base_checkpoints/d6
+pt_eval_bundle
+pt_eval_bundle.zip

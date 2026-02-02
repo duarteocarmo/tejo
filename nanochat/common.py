@@ -215,6 +215,17 @@ def compute_cleanup():
         dist.destroy_process_group()
 
 
+SAMPLE_PROMPTS = [
+    "A capital de Portugal é",
+    "O símbolo químico do ouro é",
+    "Se ontem foi sexta-feira, então amanhã será",
+    "O contrário de quente é",
+    "Os planetas do sistema solar são:",
+    "O rio mais comprido de Portugal é",
+    "Se 5*x + 3 = 13, então x é",
+]
+
+
 class DummyWandb:
     """Useful if we wish to not use wandb but have all the same signatures"""
 

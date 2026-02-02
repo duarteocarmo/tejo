@@ -30,18 +30,18 @@ from nanochat.core_eval import evaluate_task
 # -----------------------------------------------------------------------------
 # nanochat specific function dealing with I/O etc.
 
-# ~162MB of data needed to evaluate the CORE metric
-EVAL_BUNDLE_URL = "https://karpathy-public.s3.us-west-2.amazonaws.com/eval_bundle.zip"
+# ~1.2MB of data needed to evaluate the PT-CORE metric (Portuguese)
+EVAL_BUNDLE_URL = "https://doc-public-s3.duarteocarmo.com/pt_eval_bundle.zip"
 
 def place_eval_bundle(file_path):
     # here file_path is the path to the eval_bundle.zip file
     # we need to unzip it and place it in the base directory
     base_dir = get_base_dir()
-    eval_bundle_dir = os.path.join(base_dir, "eval_bundle")
+    eval_bundle_dir = os.path.join(base_dir, "pt_eval_bundle")
     with tempfile.TemporaryDirectory() as tmpdir:
         with zipfile.ZipFile(file_path, 'r') as zip_ref:
             zip_ref.extractall(tmpdir)
-        extracted_bundle_dir = os.path.join(tmpdir, "eval_bundle")
+        extracted_bundle_dir = os.path.join(tmpdir, "pt_eval_bundle")
         shutil.move(extracted_bundle_dir, eval_bundle_dir)
     print0(f"Placed eval_bundle directory at {eval_bundle_dir}")
 
@@ -52,11 +52,11 @@ def evaluate_model(model, tokenizer, device, max_per_task=-1):
     """
     # Load config and task metadata
     base_dir = get_base_dir()
-    eval_bundle_dir = os.path.join(base_dir, "eval_bundle")
+    eval_bundle_dir = os.path.join(base_dir, "pt_eval_bundle")
     # Download the eval bundle to disk (and unzip if needed)
     if not os.path.exists(eval_bundle_dir):
-        download_file_with_lock(EVAL_BUNDLE_URL, "eval_bundle.zip", postprocess_fn=place_eval_bundle)
-    config_path = os.path.join(eval_bundle_dir, "core.yaml")
+        download_file_with_lock(EVAL_BUNDLE_URL, "pt_eval_bundle.zip", postprocess_fn=place_eval_bundle)
+    config_path = os.path.join(eval_bundle_dir, "pt_core.yaml")
     data_base_path = os.path.join(eval_bundle_dir, "eval_data")
     eval_meta_data = os.path.join(eval_bundle_dir, "eval_meta_data.csv")
     with open(config_path, 'r', encoding='utf-8') as f:
@@ -190,7 +190,7 @@ def main():
             f.write(f"{'Task':<35}, {'Accuracy':<10}, {'Centered':<10}\n")
             for label in results:
                 f.write(f"{label:<35}, {results[label]:<10.6f}, {centered_results[label]:<10.6f}\n")
-            f.write(f"{'CORE':<35}, {'':<10}, {core_metric:<10.6f}\n")
+            f.write(f"{'PT-CORE':<35}, {'':<10}, {core_metric:<10.6f}\n")
         # Print the content of the csv file to console too
         print0("="*80)
         print0(f"Model: {model_name}")
