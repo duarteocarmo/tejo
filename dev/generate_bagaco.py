@@ -178,5 +178,5 @@ def upload():
 
 
 if __name__ == "__main__":
-    # build_dataset()
-    upload()
+    build_dataset()
+    # upload()
